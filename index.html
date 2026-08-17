@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#ff8fab">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="🌸工作台">
+<title>🌸 工作台 - 手账生活</title>
+<style>
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;background:#fff5f7;color:#4a4a4a;}
+
+  /* Layout */
+  .app-container{display:flex;min-height:100vh;}
+  .sidebar{width:220px;background:linear-gradient(180deg,#fff0f5,#ffe4ec);border-right:2px solid #ffd1dc;display:flex;flex-direction:column;padding:24px 14px;position:fixed;left:0;top:0;bottom:0;z-index:100;overflow-y:auto;}
+  .sidebar-logo{text-align:center;margin-bottom:24px;}
+  .sidebar-logo .logo-icon{font-size:32px;margin-bottom:4px;}
+  .sidebar-logo .logo-title{color:#d63384;font-size:20px;font-weight:700;letter-spacing:2px;margin:0;}
+  .sidebar-logo .logo-sub{color:#ff8fab;font-size:11px;margin-top:2px;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;margin-bottom:6px;cursor:pointer;transition:all .3s;color:#d63384;font-size:14px;font-weight:600;border:2px solid transparent;}
+  .nav-item:hover{background:rgba(255,255,255,.6);border-color:#ffd1dc;}
+  .nav-item.active{background:linear-gradient(135deg,#ff8fab,#fb6f92);color:#fff;border-color:transparent;box-shadow:0 4px 12px rgba(251,111,146,.3);}
+  .nav-item .nav-icon{font-size:18px;}
+  .main-content{margin-left:220px;flex:1;padding:24px;background:linear-gradient(135deg,#fff5f7,#ffe8f0);min-height:100vh;max-width:calc(100% - 220px);}
+
+  /* Mobile Bottom Nav */
+  .bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:2px solid #ffd1dc;padding:6px 0;z-index:100;justify-content:space-around;box-shadow:0 -4px 20px rgba(255,182,193,.2);}
+  .bottom-nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 8px;border-radius:12px;cursor:pointer;transition:all .3s;color:#999;font-size:10px;font-weight:600;border:2px solid transparent;}
+  .bottom-nav-item.active{color:#d63384;background:#fff0f5;border-color:#ffd1dc;}
+  .bottom-nav-item .bn-icon{font-size:20px;}
+
+  /* Components */
+  .pink-btn{background:linear-gradient(135deg,#ff8fab,#fb6f92);color:#fff;border:none;padding:10px 18px;border-radius:20px;cursor:pointer;font-size:14px;transition:all .3s;box-shadow:0 4px 15px rgba(251,111,146,.3);font-weight:600;width:100%;}
+  .pink-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(251,111,146,.4);}
+  .pink-btn:active{transform:scale(.97);}
+  .pink-btn-outline{background:#fff;color:#fb6f92;border:2px solid #fb6f92;padding:8px 14px;border-radius:20px;cursor:pointer;font-size:13px;font-weight:600;transition:all .3s;}
+  .card{background:#fff;border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 2px 12px rgba(255,182,193,.18);border:1px solid rgba(255,182,193,.3);}
+  .input-cute{border:2px solid #ffd1dc;border-radius:12px;padding:10px 14px;outline:none;font-size:14px;background:#fffafc;width:100%;transition:all .3s;}
+  .input-cute:focus{border-color:#ff8fab;box-shadow:0 0 0 3px rgba(255,143,171,.2);}
+  .select-cute{border:2px solid #ffd1dc;border-radius:12px;padding:10px 14px;outline:none;background:#fffafc;cursor:pointer;font-size:14px;width:100%;}
+  .tag{background:#ffe4ec;color:#d63384;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;display:inline-block;margin:2px;}
+  .tag-blue{background:#e3f2fd;color:#1976d2;}
+  .tag-orange{background:#fff3e0;color:#e65100;}
+  .section-title{font-size:17px;font-weight:700;color:#d63384;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+  .hidden{display:none!important;}
+  .flex{display:flex;}.items-center{align-items:center;}.justify-between{justify-content:space-between;}.gap-1{gap:4px;}.gap-2{gap:8px;}.mt-1{margin-top:4px;}.mt-2{margin-top:8px;}.mt-3{margin-top:12px;}.w-full{width:100%;}.text-center{text-align:center;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .scroll-y{overflow-y:auto;max-height:55vh;}
+  .todo-item{display:flex;align-items:center;gap:8px;padding:10px;background:#fff;border-radius:12px;margin-bottom:8px;border:2px solid #ffd1dc;}
+  .todo-item.done{background:#f8f8f8;border-color:#e0e0e0;}
+  .todo-item.done .todo-text{text-decoration:line-through;color:#999;}
+  .calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;}
+  .calendar-day-header{font-size:11px;color:#888;font-weight:600;padding:6px 0;}
+  .calendar-day{background:#fff;border-radius:10px;padding:6px 2px;min-height:52px;cursor:pointer;transition:all .2s;border:2px solid transparent;position:relative;}
+  .calendar-day:hover{border-color:#ff8fab;background:#fff0f5;}
+  .calendar-day.today{background:linear-gradient(135deg,#ff8fab,#fb6f92);color:#fff;font-weight:700;box-shadow:0 4px 12px rgba(251,111,146,.3);}
+  .calendar-day.other-month{color:#ccc;background:#fafafa;}
+  .calendar-day .day-num{font-size:13px;font-weight:600;}
+  .calendar-day .day-dot{width:6px;height:6px;border-radius:50%;background:#fb6f92;margin:3px auto 0;}
+  .calendar-day .day-dot.work{background:#2196f3;}
+  .calendar-day .day-dot.life{background:#ff9800;}
+  .calendar-day .day-dot.both{background:linear-gradient(135deg,#2196f3,#ff9800);}
+  .note-card{background:linear-gradient(135deg,#fff0f5,#ffe4ec);border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid rgba(255,182,193,.3);}
+  .progress-bar{background:#ffe4ec;border-radius:10px;height:8px;overflow:hidden;}
+  .progress-fill{background:linear-gradient(90deg,#ff8fab,#fb6f92);height:100%;border-radius:10px;transition:width .5s;}
+  .water-cup{width:36px;height:44px;border:3px solid #ffb6c1;border-radius:0 0 16px 16px;cursor:pointer;transition:all .3s;background:#fff;margin:0 auto;}
+  .exercise-card{background:linear-gradient(135deg,#fff0f5,#ffe4ec);border-radius:12px;padding:12px;margin:8px 0;border:2px solid #ffd1dc;cursor:pointer;}
+  .exercise-card.done{background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border-color:#a5d6a7;}
+  .dashboard-card{background:#fff;border-radius:16px;padding:16px;box-shadow:0 4px 16px rgba(255,182,193,.15);border:1px solid rgba(255,182,193,.3);}
+  .chart-bar{background:linear-gradient(to top,#ff8fab,#fb6f92);border-radius:6px 6px 0 0;transition:height .5s;}
+  ::-webkit-scrollbar{width:5px;}
+  ::-webkit-scrollbar-track{background:#fff0f5;border-radius:3px;}
+  ::-webkit-scrollbar-thumb{background:#ffb6c1;border-radius:3px;}
+
+  @media(max-width:768px){
+    .sidebar{display:none;}
+    .main-content{margin-left:0;max-width:100%;padding:16px;padding-bottom:90px;}
+    .bottom-nav{display:flex;}
+    .grid-2{grid-template-columns:1fr;}
+    .calendar-day{min-height:44px;padding:4px 1px;}
+    .calendar-day .day-num{font-size:11px;}
+  }
+  @media(min-width:769px){
+    .bottom-nav{display:none!important;}
+  }
+</style>
+</head>
+<body>
+<div class="app-container">
+  <!-- Desktop Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">🌸</div>
+      <div class="logo-title">工作台</div>
+      <div class="logo-sub">记录生活，温暖每一天</div>
+    </div>
+    <div class="nav-item active" data-page="calendar" onclick="switchPage('calendar')">
+      <span class="nav-icon">📅</span><span>日历</span>
+    </div>
+    <div class="nav-item" data-page="accounting" onclick="switchPage('accounting')">
+      <span class="nav-icon">💰</span><span>记账</span>
+    </div>
+    <div class="nav-item" data-page="todo" onclick="switchPage('todo')">
+      <span class="nav-icon">✅</span><span>待办</span>
+    </div>
+    <div class="nav-item" data-page="exercise" onclick="switchPage('exercise')">
+      <span class="nav-icon">🏃</span><span>运动</span>
+    </div>
+    <div class="nav-item" data-page="body" onclick="switchPage('body')">
+      <span class="nav-icon">💪</span><span>身体</span>
+    </div>
+    <div class="nav-item" data-page="food" onclick="switchPage('food')">
+      <span class="nav-icon">🍜</span><span>吃喝</span>
+    </div>
+    <div class="nav-item" data-page="assets" onclick="switchPage('assets')">
+      <span class="nav-icon">💎</span><span>资产</span>
+    </div>
+    <div class="nav-item" data-page="notes" onclick="switchPage('notes')">
+      <span class="nav-icon">📝</span><span>记录</span>
+    </div>
+    <div class="nav-item" data-page="dashboard" onclick="switchPage('dashboard')">
+      <span class="nav-icon">📊</span><span>看板</span>
+    </div>
+    <div style="margin-top:auto;padding-top:16px;border-top:1px solid #ffd1dc;text-align:center;font-size:11px;color:#ff8fab;">
+      数据保存在本地浏览器
+    </div>
+  </nav>
+
+  <!-- Mobile Bottom Nav -->
+  <nav class="bottom-nav">
+    <div class="bottom-nav-item active" data-page="calendar" onclick="switchPage('calendar')"><span class="bn-icon">📅</span><span>日历</span></div>
+    <div class="bottom-nav-item" data-page="todo" onclick="switchPage('todo')"><span class="bn-icon">✅</span><span>待办</span></div>
+    <div class="bottom-nav-item" data-page="food" onclick="switchPage('food')"><span class="bn-icon">🍜</span><span>吃喝</span></div>
+    <div class="bottom-nav-item" data-page="accounting" onclick="switchPage('accounting')"><span class="bn-icon">💰</span><span>记账</span></div>
+    <div class="bottom-nav-item" data-page="dashboard" onclick="switchPage('dashboard')"><span class="bn-icon">📊</span><span>看板</span></div>
+    <div class="bottom-nav-item" onclick="showMoreMenu()"><span class="bn-icon">➕</span><span>更多</span></div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="font-size:24px;margin-bottom:4px;">🌸</div>
+      <h1 style="color:#d63384;margin:0;font-size:22px;letter-spacing:2px;">工作台</h1>
+      <p style="color:#ff8fab;font-size:12px;margin-top:2px;">记录生活，温暖每一天</p>
+      <div style="font-size:11px;color:#999;margin-top:6px;" id="currentDate"></div>
+    </div>
+
+    <!-- CALENDAR -->
+    <div id="page-calendar" class="page">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <button class="pink-btn-outline" onclick="changeMonth(-1)">◀</button>
+          <div style="font-size:18px;font-weight:700;color:#d63384;" id="calendarTitle"></div>
+          <button class="pink-btn-outline" onclick="changeMonth(1)">▶</button>
+        </div>
+        <div class="calendar-grid" id="calendarHeader">
+          <div class="calendar-day-header">日</div><div class="calendar-day-header">一</div><div class="calendar-day-header">二</div><div class="calendar-day-header">三</div><div class="calendar-day-header">四</div><div class="calendar-day-header">五</div><div class="calendar-day-header">六</div>
+        </div>
+        <div class="calendar-grid mt-2" id="calendarGrid"></div>
+        <div style="display:flex;gap:12px;justify-content:center;margin-top:12px;font-size:11px;color:#888;">
+          <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#2196f3;margin-right:4px;"></span>工作</span>
+          <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff9800;margin-right:4px;"></span>生活</span>
+          <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:linear-gradient(135deg,#2196f3,#ff9800);margin-right:4px;"></span>都有</span>
+        </div>
+      </div>
+      <div class="card" id="calendarDayDetail" style="display:none;">
+        <div class="section-title"><span class="icon">📅</span><span id="selectedDateTitle"></span></div>
+        <div id="calendarDayTodos"></div>
+        <div class="mt-3" style="border-top:1px dashed #ffd1dc;padding-top:12px;">
+          <div style="font-size:13px;font-weight:600;color:#d63384;margin-bottom:8px;">➕ 为该日添加待办</div>
+          <input type="text" id="calendarTodoContent" class="input-cute mb-2" placeholder="待办内容...">
+          <div class="grid-2">
+            <select id="calendarTodoCategory" class="select-cute"><option value="work">💼 工作</option><option value="life">🏠 生活</option></select>
+            <input type="time" id="calendarTodoTime" class="input-cute">
+          </div>
+          <button class="pink-btn w-full mt-2" onclick="addCalendarTodo()">添加待办</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACCOUNTING -->
+    <div id="page-accounting" class="page hidden">
+      <div class="card">
+        <div class="section-title"><span class="icon">💰</span>记一笔</div>
+        <div class="grid-2">
+          <div><label style="font-size:12px;color:#888;">买了什么</label><input type="text" id="accItem" class="input-cute" placeholder="例如：奶茶"></div>
+          <div><label style="font-size:12px;color:#888;">多少钱</label><input type="number" id="accAmount" class="input-cute" placeholder="0.00" step="0.01"></div>
+        </div>
+        <div class="mt-2"><label style="font-size:12px;color:#888;">平台</label>
+          <select id="accPlatform" class="select-cute"><option>拼多多</option><option>京东</option><option>淘宝</option><option>美团</option><option>抖音</option><option>其他</option></select>
+        </div>
+        <div class="mt-2"><label style="font-size:12px;color:#888;">上传图片（模拟解析）</label><input type="file" id="accImage" accept="image/*" class="input-cute" style="padding:8px;" onchange="parseBillImage(this)"></div>
+        <button class="pink-btn w-full mt-3" onclick="addAccounting()">➕ 添加记账</button>
+      </div>
+      <div class="card">
+        <div class="section-title"><span class="icon">📋</span>本月支出</div>
+        <div id="accountingList" class="scroll-y"></div>
+        <div class="mt-3" style="border-top:2px dashed #ffd1dc;padding-top:12px;">
+          <div class="flex justify-between items-center"><span style="font-weight:700;color:#d63384;">本月合计</span><span style="font-weight:700;color:#d63384;font-size:18px;" id="accTotal">¥0.00</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TODO -->
+    <div id="page-todo" class="page hidden">
+      <div class="card">
+        <div class="section-title"><span class="icon">✅</span>添加待办</div>
+        <input type="text" id="todoContent" class="input-cute mb-2" placeholder="待办内容...">
+        <div class="grid-2">
+          <div><label style="font-size:12px;color:#888;">分类</label><select id="todoCategory" class="select-cute"><option value="work">💼 工作</option><option value="life">🏠 生活</option></select></div>
+          <div><label style="font-size:12px;color:#888;">日期</label><input type="date" id="todoDate" class="input-cute"></div>
+        </div>
+        <div class="grid-2 mt-2">
+          <div><label style="font-size:12px;color:#888;">时间</label><input type="time" id="todoTime" class="input-cute"></div>
+          <div><label style="font-size:12px;color:#888;">提醒</label><select id="todoReminder" class="select-cute"><option value="none">不提醒</option><option value="5min">提前5分钟</option><option value="15min">提前15分钟</option><option value="30min">提前30分钟</option><option value="1hour">提前1小时</option></select></div>
+        </div>
+        <button class="pink-btn w-full mt-3" onclick="addTodo()">➕ 添加待办</button>
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">
+        <button class="pink-btn-outline active" style="flex:1;" id="todoTab-myday" onclick="filterTodo('myday')">☀️ 我的一天</button>
+        <button class="pink-btn-outline" style="flex:1;" id="todoTab-all" onclick="filterTodo('all')">📋 全部</button>
+        <button class="pink-btn-outline" style="flex:1;" id="todoTab-work" onclick="filterTodo('work')">💼 工作</button>
+        <button class="pink-btn-outline" style="flex:1;" id="todoTab-life" onclick="filterTodo('life')">🏠 生活</button>
+        <button class="pink-btn-outline" style="flex:1;" id="todoTab-done" onclick="filterTodo('done')">✨ 已办结</button>
+      </div>
+      <div id="todoList" class="scroll-y"></div>
+    </div>
+
+    <!-- EXERCISE -->
+    <div id="page-exercise" class="page hidden">
+      <div class="card">
+        <div class="section-title"><span class="icon">🎯</span>今日推荐 · 短时锻炼</div>
+        <div id="exercisePlan"></div>
+      </div>
+      <div class="card">
+        <div class="section-title"><span class="icon">🏃</span>锻炼记录</div>
+        <div class="grid-2">
+          <div><label style="font-size:12px;color:#888;">运动项目</label><select id="exType" class="select-cute"><option>跑步</option><option>瑜伽</option><option>跳绳</option><option>健身操</option><option>游泳</option><option>骑行</option><option>其他</option></select></div>
+          <div><label style="font-size:12px;color:#888;">时长(分钟)</label><input type="number" id="exDuration" class="input-cute" placeholder="30"></div>
+        </div>
+        <div class="mt-2"><label style="font-size:12px;color:#888;">消耗热量(千卡)</label><input type="number" id="exCalories" class="input-cute" placeholder="可选"></div>
+        <button class="pink-btn w-full mt-3" onclick="addExercise()">➕ 记录运动</button>
+      </div>
+      <div class="card">
+        <div class="section-title"><span class="icon">📈</span>本周运动</div>
+        <div id="exerciseList" class="scroll-y"></div>
+      </div>
+    </div>
+
+    <!-- BODY -->
+    <div id="page-body" class="page hidden">
+      <div class="card">
+        <div class="section-title"><span class="icon">⚖️</span>体重记录</div>
+        <div class="flex gap-2 items-center"><input type="number" id="bodyWeight" class="input-cute" style="flex:1;" placeholder="体重(kg)" step="0.1"><button class="pink-btn" style="width:auto;padding:10px 24px;" onclick="addWeight()">记录</button></div>
+        <div id="weightHistory" class="mt-2" style="font-size:12px;color:#888;"></div>
+      </div>
+      <div class="card">
+        <div class="section-title"><span class="icon">🌙</span>经期记录</div>
+        <div class="grid-2">
+          <div><label style="font-size:12px;color:#888;">状态</label><select id="periodStatus" class="select-cute" onchange="updatePeriodUI()"><option value="none">选择状态</option><option value="coming">来了</option><option value="not">没来</option></select></div>
+          <div><label style="font-size:12px;color:#888;">流量</label><select id="periodFlow" class="select-cute"><option value="normal">正常</option><option value="heavy">多</option><option value="light">少</option></select></div>
+        </div>
+        <div id="periodTip" class="mt-2" style="background:#fff0f5;border-radius:8px;padding:10px;font-size:12px;color:#d63384;display:none;"></div>
+        <button class="pink-btn w-full mt-3" onclick="addPeriod()">➕ 记录经期</button>
+        <div id="periodPrediction" class="mt-2" style="font-size:13px;color:#666;"></div>
+      </div>
+      <div class="card">
+        <div class="section-title"><span class="icon">💊</span>身体健康</div>
+        <textarea id="bodyHealth" class="input-cute" rows="3" placeholder="记录今天的身体状况..." style="resize:vertical;"></textarea>
+        <button class="pink-btn w-full mt-2" onclick="addHealth()">保存记录</button>
+        <div id="healthList" class="mt-2 scroll-y"></div>
+      </div>
+    </div>
+
+    <!-- FOOD -->
+    <div id="page-food" class="page hidden">
+      <div class="card">
+        <div class="section-title"><span class="icon">🍜</span>吃了什么</div>
+        <div class="flex gap-2 mb-2" style="flex-wrap:wrap;">
+          <button class="pink-btn-outline active" id="meal-breakfast" onclick="selectMeal('breakfast')">🌅 早餐</button>
+          <button class="pink-btn-outline" id="meal-lunch" onclick="selectMeal('lunch')">☀️ 午餐</button>
+          <button class="pink-btn-outline" id="meal-dinner" onclick="selectMeal('dinner')">🌙 晚餐</button>
+          <button class="pink-btn-outline" id="meal-other" onclick="selectMeal('other')">🍪 其他</button>
+        </div>
+        <input type="text" id="foodItem" class="input-cute" placeholder="吃了什么...">
+        <button class="pink-btn w-full mt-2" onclick="addFood()">➕ 记录</button>
+        <div id="foodList" class="mt-2 scroll-y"></div>
+      </div>
+      <div class="card">
+        <div class="section-title"><span class="icon">💧</span>喝水记录</div>
+        <div style="display:flex;gap:16px;justify-content:center;margin:16px 0;">
+          <div style="text-align:center;cursor:pointer;" onclick="addWater(200)"><div class="water-cup" style="--level:40%;"></div><div style="font-size:12px;color:#888;margin-top:4px;">200ml</div></div>
+          <div style="text-align:center;cursor:pointer;" onclick="addWater(300)"><div class="water-cup" style="--level:60%;"></div><div style="font-size:12px;color:#888;margin-top:4px;">300ml</div></div>
+          <div style="text-align:center;cursor:pointer;" onclick="addWater(500)"><div class="water-cup" style="--level:100%;"></div><div style="font-size:12px;color:#888;margin-top:4px;">500ml</div></div>
+        </div>
+        <div class="text-center">
+          <span class="tag">今日已喝 <span id="waterTotal" style="font-size:16px;">0</span> ml</span>
+          <div class="progress-bar mt-2" style="max-width:300px;margin:8px auto;"><div class="progress-fill" id="waterProgress" style="width:0%"></div></div>
+          <div style="font-size:11px;color:#999;">目标: 2000ml</div>
+        </div>
+        <div class="mt-3">
+          <div class="section-title" style="font-size:14px;"><span class="icon">🥤</span>饮料记录</div>
+          <input type="text" id="drinkItem" class="input-cute" placeholder="例如：可乐、奶茶、咖啡...">
+          <button class="pink-btn w-full mt-2" onclick="addDrink()">➕ 记录饮料</button>
+          <div id="drinkList" class="mt-2"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ASSETS -->
+    <div id="page-assets" class="page hidden">
+      <div class="card">
+        <div class="section-title"><span class="icon">💎</span>资产记录</div>
+        <div class="grid-2">
+          <div><label style="font-size:12px;color:#888;">日期</label><input type="date" id="assetDate" class="input-cute"></div>
+          <div><label style="font-size:12px;color:#888;">账户</label>
+            <select id="assetAccount" class="select-cute"><option>招商</option><option>工商</option><option>中行</option><option>支付宝</option><option>微信</option><option>其他</option></select>
+          </div>
+        </div>
+        <div class="mt-2"><label style="font-size:12px;color:#888;">金额</label><input type="number" id="assetAmount" class="input-cute" placeholder="0.00" step="0.01"></div>
+        <button class="pink-btn w-full mt-3" onclick="addAsset()">➕ 添加资产</button>
+      </div>
+      <div class="card">
+        <div class="section-title"><span class="icon">📊</span>资产分布</div>
+        <div id="assetList" class="scroll-y"></div>
+        <div class="mt-3" style="border-top:2px dashed #ffd1dc;padding-top:12px;">
+          <div class="flex justify-between items-center"><span style="font-weight:700;color:#d63384;">资产合计</span><span style="font-weight:700;color:#d63384;font-size:18px;" id="assetTotal">¥0.00</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOTES -->
+    <div id="page-notes" class="page hidden">
+      <div class="card">
+        <div class="section-title"><span class="icon">📝</span>随心记录</div>
+        <textarea id="noteContent" class="input-cute" rows="5" placeholder="写下今天的心情、想法、感悟..." style="resize:vertical;"></textarea>
+        <button class="pink-btn w-full mt-2" onclick="addNote()">✨ 保存记录</button>
+      </div>
+      <div id="notesList"></div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="page-dashboard" class="page hidden">
+      <div style="display:flex;gap:6px;margin-bottom:16px;justify-content:center;">
+        <button class="pink-btn-outline active" id="dash-day" onclick="switchDash('day')">📅 日</button>
+        <button class="pink-btn-outline" id="dash-week" onclick="switchDash('week')">📆 周</button>
+        <button class="pink-btn-outline" id="dash-month" onclick="switchDash('month')">🗓️ 月</button>
+      </div>
+      <div id="dashboardContent">
+        <div class="grid-2">
+          <div class="dashboard-card"><div style="font-size:12px;color:#888;">支出</div><div style="font-size:20px;font-weight:700;color:#d63384;" id="dashExpense">¥0</div></div>
+          <div class="dashboard-card"><div style="font-size:12px;color:#888;">资产</div><div style="font-size:20px;font-weight:700;color:#2e7d32;" id="dashAsset">¥0</div></div>
+          <div class="dashboard-card"><div style="font-size:12px;color:#888;">运动时长</div><div style="font-size:20px;font-weight:700;color:#d63384;" id="dashExercise">0min</div></div>
+          <div class="dashboard-card"><div style="font-size:12px;color:#888;">喝水</div><div style="font-size:20px;font-weight:700;color:#2196f3;" id="dashWater">0ml</div></div>
+        </div>
+        <div class="dashboard-card mt-3">
+          <div class="section-title" style="font-size:14px;"><span class="icon">📊</span>支出趋势</div>
+          <div id="expenseChart" style="height:120px;display:flex;align-items:flex-end;gap:6px;justify-content:center;padding:12px 0;"></div>
+        </div>
+        <div class="dashboard-card mt-3">
+          <div class="section-title" style="font-size:14px;"><span class="icon">✅</span>待办完成率</div>
+          <div class="flex items-center gap-4 mt-2">
+            <div style="width:70px;height:70px;border-radius:50%;background:conic-gradient(#ff8fab var(--progress),#ffe4ec 0);display:flex;align-items:center;justify-content:center;" id="todoCircle">
+              <div style="width:52px;height:52px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;color:#d63384;font-size:13px;" id="todoRate">0%</div>
+            </div>
+            <div style="flex:1;">
+              <div style="font-size:12px;color:#888;">已完成: <span id="todoDone" style="color:#d63384;font-weight:700;">0</span></div>
+              <div style="font-size:12px;color:#888;">未完成: <span id="todoPending" style="color:#fb6f92;font-weight:700;">0</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="dashboard-card mt-3">
+          <div class="section-title" style="font-size:14px;"><span class="icon">📈</span>待办分类</div>
+          <div style="display:flex;gap:16px;align-items:center;justify-content:center;margin-top:8px;">
+            <div style="text-align:center;"><div style="font-size:20px;font-weight:700;color:#2196f3;" id="dashWorkTodo">0</div><div style="font-size:11px;color:#888;">工作待办</div></div>
+            <div style="width:1px;height:30px;background:#ffd1dc;"></div>
+            <div style="text-align:center;"><div style="font-size:20px;font-weight:700;color:#ff9800;" id="dashLifeTodo">0</div><div style="font-size:11px;color:#888;">生活待办</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-3" style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+        <button class="pink-btn" style="width:auto;" onclick="exportData('pdf')">📄 导出PDF</button>
+        <button class="pink-btn" style="width:auto;" onclick="exportData('word')">📃 导出Word</button>
+        <button class="pink-btn" style="width:auto;" onclick="exportData('excel')">📊 导出Excel</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+let data=JSON.parse(localStorage.getItem('journalData_v3')||JSON.stringify({accounting:[],todo:[],exercise:[],weight:[],period:[],health:[],food:[],water:[],drink:[],assets:[],notes:[]}));
+let currentMeal='breakfast',todoFilter='myday',dashPeriod='day',calendarCurrent=new Date(),selectedCalendarDate=null;
+
+function saveData(){localStorage.setItem('journalData_v3',JSON.stringify(data));refreshAll();}
+function refreshAll(){renderCalendar();renderAccounting();renderTodo();renderExercise();renderBody();renderFood();renderAssets();renderNotes();renderDashboard();}
+
+function switchPage(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));
+  document.getElementById('page-'+page).classList.remove('hidden');
+  document.querySelectorAll('.sidebar .nav-item').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.bottom-nav-item').forEach(t=>t.classList.remove('active'));
+  const sb=document.querySelector('.sidebar .nav-item[data-page="'+page+'"]');
+  if(sb)sb.classList.add('active');
+  const bn=document.querySelector('.bottom-nav-item[data-page="'+page+'"]');
+  if(bn)bn.classList.add('active');
+  if(page==='calendar')renderCalendar();
+  refreshAll();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function showMoreMenu(){
+  const pages=['exercise','body','assets','notes'];
+  const names=['🏃 运动','💪 身体','💎 资产','📝 记录'];
+  const choice=prompt('选择要跳转的页面：\n1. 运动\n2. 身体\n3. 资产\n4. 记录\n请输入数字(1-4)：');
+  const idx=parseInt(choice);
+  if(idx>=1&&idx<=4)switchPage(pages[idx-1]);
+}
+
+const now=new Date();
+document.getElementById('currentDate').textContent=now.toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric',weekday:'long'});
+
+// CALENDAR
+function changeMonth(d){calendarCurrent.setMonth(calendarCurrent.getMonth()+d);renderCalendar();}
+function renderCalendar(){const y=calendarCurrent.getFullYear(),m=calendarCurrent.getMonth();document.getElementById('calendarTitle').textContent=y+'年'+(m+1)+'月';const fd=new Date(y,m,1),ld=new Date(y,m+1,0),so=fd.getDay(),dim=ld.getDate(),pld=new Date(y,m,0).getDate();let h='';for(let i=so-1;i>=0;i--)h+=`<div class="calendar-day other-month"><div class="day-num">${pld-i}</div></div>`;const ts=new Date().toISOString().split('T')[0];for(let d=1;d<=dim;d++){const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`,td=data.todo.filter(t=>t.date===ds&&!t.done),hw=td.some(t=>t.category==='work'),hl=td.some(t=>t.category==='life');let dc='';if(hw&&hl)dc='both';else if(hw)dc='work';else if(hl)dc='life';h+=`<div class="calendar-day ${ds===ts?'today':''}" onclick="selectCalendarDay('${ds}')"><div class="day-num">${d}</div>${dc?`<div class="day-dot ${dc}"></div>`:''}</div>`;}const tc=so+dim,rm=(7-(tc%7))%7;for(let i=1;i<=rm;i++)h+=`<div class="calendar-day other-month"><div class="day-num">${i}</div></div>`;document.getElementById('calendarGrid').innerHTML=h;}
+function selectCalendarDay(ds){selectedCalendarDate=ds;document.getElementById('calendarDayDetail').style.display='block';document.getElementById('selectedDateTitle').textContent=ds+' 的日程';const td=data.todo.filter(t=>t.date===ds).sort((a,b)=>(a.time||'').localeCompare(b.time||''));const c=document.getElementById('calendarDayTodos');if(!td.length)c.innerHTML='<div style="color:#999;text-align:center;padding:16px;">该日暂无待办</div>';else c.innerHTML=td.map(t=>{const ct=t.category==='work'?'<span class="tag tag-blue">💼 工作</span>':'<span class="tag tag-orange">🏠 生活</span>';return `<div class="todo-item ${t.done?'done':''}"><input type="checkbox" ${t.done?'checked':''} onchange="toggleTodo(${t.id});renderCalendarDayDetail()" style="width:16px;height:16px;accent-color:#fb6f92;cursor:pointer;"><div style="flex:1;"><div class="todo-text" style="font-weight:600;font-size:14px;">${t.content}</div><div style="font-size:11px;color:#888;margin-top:2px;">${t.time||''} ${ct}</div></div><button onclick="deleteTodo(${t.id});renderCalendarDayDetail();renderCalendar()" style="background:none;border:none;color:#ff8fab;cursor:pointer;font-size:16px;">🗑️</button></div>`;}).join('');document.getElementById('calendarTodoTime').value='';document.getElementById('calendarTodoContent').value='';document.getElementById('calendarDayDetail').scrollIntoView({behavior:'smooth'});}
+function renderCalendarDayDetail(){if(selectedCalendarDate)selectCalendarDay(selectedCalendarDate);}
+function addCalendarTodo(){const c=document.getElementById('calendarTodoContent').value.trim(),cat=document.getElementById('calendarTodoCategory').value,tm=document.getElementById('calendarTodoTime').value;if(!c){alert('请输入待办内容');return;}data.todo.push({id:Date.now(),content:c,date:selectedCalendarDate,time:tm,category:cat,reminder:'none',done:false,created:new Date().toISOString()});document.getElementById('calendarTodoContent').value='';document.getElementById('calendarTodoTime').value='';saveData();renderCalendarDayDetail();renderCalendar();}
+
+// ACCOUNTING
+function addAccounting(){const i=document.getElementById('accItem').value.trim(),a=parseFloat(document.getElementById('accAmount').value),p=document.getElementById('accPlatform').value;if(!i||!a){alert('请填写完整信息');return;}data.accounting.push({id:Date.now(),item:i,amount:a,platform:p,date:new Date().toISOString()});document.getElementById('accItem').value='';document.getElementById('accAmount').value='';saveData();}
+function parseBillImage(inp){if(inp.files&&inp.files[0]){setTimeout(()=>{document.getElementById('accItem').value='商品（图片解析）';document.getElementById('accAmount').value=(Math.random()*100+10).toFixed(2);alert('图片已上传，模拟解析完成！');},800);}}
+function renderAccounting(){const l=document.getElementById('accountingList'),n=new Date(),ms=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0'),mi=data.accounting.filter(a=>a.date.startsWith(ms));let t=0;l.innerHTML=mi.slice().reverse().map(a=>{t+=a.amount;return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #fff0f5;"><div><span class="tag">${a.platform}</span> <span style="margin-left:8px;font-size:13px;">${a.item}</span></div><div style="font-weight:700;color:#d63384;">¥${a.amount.toFixed(2)}</div></div>`;}).join('')||'<div style="text-align:center;color:#999;padding:20px;">本月暂无支出记录</div>';document.getElementById('accTotal').textContent='¥'+t.toFixed(2);}
+
+// TODO
+function addTodo(){const c=document.getElementById('todoContent').value.trim(),cat=document.getElementById('todoCategory').value,d=document.getElementById('todoDate').value||new Date().toISOString().split('T')[0],t=document.getElementById('todoTime').value,r=document.getElementById('todoReminder').value;if(!c){alert('请输入待办内容');return;}data.todo.push({id:Date.now(),content:c,date:d,time:t,category:cat,reminder:r,done:false,created:new Date().toISOString()});document.getElementById('todoContent').value='';document.getElementById('todoDate').value='';document.getElementById('todoTime').value='';document.getElementById('todoReminder').value='none';saveData();}
+function toggleTodo(id){const t=data.todo.find(x=>x.id===id);if(t){t.done=!t.done;saveData();}}
+function deleteTodo(id){data.todo=data.todo.filter(x=>x.id!==id);saveData();}
+function filterTodo(type){todoFilter=type;['myday','all','work','life','done'].forEach(t=>{const el=document.getElementById('todoTab-'+t);el.classList.toggle('active',t===type);if(t===type){el.style.background='linear-gradient(135deg,#ff8fab,#fb6f92)';el.style.color='#fff';el.style.borderColor='transparent';}else{el.style.background='#fff';el.style.color='#fb6f92';el.style.borderColor='#fb6f92';}});renderTodo();}
+function renderTodo(){const l=document.getElementById('todoList'),td=new Date().toISOString().split('T')[0];let i=data.todo;if(todoFilter==='myday')i=i.filter(t=>t.date===td&&!t.done);if(todoFilter==='done')i=i.filter(t=>t.done);if(todoFilter==='all')i=i.filter(t=>!t.done);if(todoFilter==='work')i=i.filter(t=>t.category==='work'&&!t.done);if(todoFilter==='life')i=i.filter(t=>t.category==='life'&&!t.done);l.innerHTML=i.slice().reverse().map(t=>{const ct=t.category==='work'?'<span class="tag tag-blue">💼 工作</span>':'<span class="tag tag-orange">🏠 生活</span>',tm=t.time||'',ds=t.date&&t.date!==td?t.date.slice(5):'今天',rt=t.reminder!=='none'?`<span class="tag tag-blue">⏰ ${t.reminder}</span>`:'';return `<div class="todo-item ${t.done?'done':''}"><input type="checkbox" ${t.done?'checked':''} onchange="toggleTodo(${t.id})" style="width:18px;height:18px;accent-color:#fb6f92;cursor:pointer;"><div style="flex:1;"><div class="todo-text" style="font-weight:600;font-size:14px;">${t.content}</div><div style="font-size:11px;color:#888;margin-top:2px;">${ds} ${tm} ${ct} ${rt}</div></div><button onclick="deleteTodo(${t.id})" style="background:none;border:none;color:#ff8fab;cursor:pointer;font-size:16px;">🗑️</button></div>`;}).join('')||'<div style="text-align:center;color:#999;padding:20px;">暂无待办</div>';}
+
+// EXERCISE
+const ep=[{name:'晨间唤醒',items:['开合跳 30秒','高抬腿 30秒','深蹲 15次','拉伸 1分钟'],duration:5},{name:'办公间隙',items:['颈部拉伸 30秒','肩部环绕 20次','坐姿抬腿 15次','手腕放松 30秒'],duration:5},{name:'睡前放松',items:['猫牛式 10次','婴儿式 1分钟','仰卧扭转 每侧30秒','深呼吸 1分钟'],duration:5},{name:'燃脂快闪',items:['波比跳 10次','登山跑 30秒','平板支撑 30秒','休息 30秒'],duration:5}];
+function renderExercisePlan(){const di=new Date().getDay(),pl=ep[di%ep.length];document.getElementById('exercisePlan').innerHTML=`<div style="font-weight:700;color:#d63384;margin-bottom:8px;">🌟 ${pl.name} (${pl.duration}分钟)</div>`+pl.items.map((it,ix)=>`<div class="exercise-card" onclick="this.classList.toggle('done')"><div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:14px;">${ix+1}. ${it}</span><span style="font-size:18px;">⭕</span></div></div>`).join('');}
+function addExercise(){const t=document.getElementById('exType').value,d=parseInt(document.getElementById('exDuration').value)||0,c=parseInt(document.getElementById('exCalories').value)||0;if(!d){alert('请输入运动时长');return;}data.exercise.push({id:Date.now(),type:t,duration:d,calories:c,date:new Date().toISOString()});document.getElementById('exDuration').value='';document.getElementById('exCalories').value='';saveData();}
+function renderExercise(){renderExercisePlan();const l=document.getElementById('exerciseList'),ws=new Date();ws.setDate(ws.getDate()-ws.getDay());const wi=data.exercise.filter(e=>new Date(e.date)>=ws);let tm=0,tc=0;l.innerHTML=wi.slice().reverse().map(e=>{tm+=e.duration;tc+=e.calories;return `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #fff0f5;"><span class="tag">${e.type}</span><span style="font-size:12px;color:#666;">${e.duration}分钟 ${e.calories?e.calories+'千卡':''}</span></div>`;}).join('')||'<div style="text-align:center;color:#999;">本周暂无运动记录</div>';if(wi.length>0)l.innerHTML+=`<div style="margin-top:8px;padding-top:8px;border-top:2px dashed #ffd1dc;text-align:center;color:#d63384;font-weight:700;font-size:14px;">本周累计: ${tm}分钟 ${tc>0?tc+'千卡':''}</div>`;}
+
+// BODY
+function addWeight(){const w=parseFloat(document.getElementById('bodyWeight').value);if(!w)return;data.weight.push({id:Date.now(),weight:w,date:new Date().toISOString()});document.getElementById('bodyWeight').value='';saveData();}
+function addPeriod(){const s=document.getElementById('periodStatus').value,f=document.getElementById('periodFlow').value;if(s==='none'){alert('请选择状态');return;}data.period.push({id:Date.now(),status:s,flow:f,date:new Date().toISOString()});saveData();}
+function updatePeriodUI(){const s=document.getElementById('periodStatus').value,tip=document.getElementById('periodTip'),tips={coming:'💗 经期小贴士：多喝温水，注意保暖，避免生冷食物，适当休息~',not:'✨ 保持好心情，规律作息，等待花开~'};if(tips[s]){tip.textContent=tips[s];tip.style.display='block';}else tip.style.display='none';}
+function addHealth(){const c=document.getElementById('bodyHealth').value.trim();if(!c)return;data.health.push({id:Date.now(),content:c,date:new Date().toISOString()});document.getElementById('bodyHealth').value='';saveData();}
+function renderBody(){const wh=document.getElementById('weightHistory'),rc=data.weight.slice(-5);wh.innerHTML=rc.map(w=>`<span class="tag">${new Date(w.date).getMonth()+1}/${new Date(w.date).getDate()} ${w.weight}kg</span>`).join(' ')||'暂无记录';const pp=document.getElementById('periodPrediction'),pr=data.period.filter(p=>p.status==='coming');if(pr.length>=2){const so=pr.sort((a,b)=>new Date(a.date)-new Date(b.date)),lt=so.slice(-2),cy=Math.round((new Date(lt[1].date)-new Date(lt[0].date))/(86400000)),nd=new Date(lt[1].date);nd.setDate(nd.getDate()+cy);const du=Math.ceil((nd-new Date())/86400000);pp.innerHTML=`<div style="background:#fff0f5;border-radius:12px;padding:12px;"><div style="font-weight:700;color:#d63384;">🌸 经期预测</div><div style="margin-top:4px;font-size:13px;">周期约 ${cy} 天</div><div style="font-size:13px;">预计下次: ${nd.getMonth()+1}月${nd.getDate()}日 (${du>0?'还有'+du+'天':'已到期'})</div></div>`;}else pp.innerHTML='<div style="color:#999;font-size:12px;">记录2次以上经期后可预测周期</div>';const hl=document.getElementById('healthList');hl.innerHTML=data.health.slice().reverse().map(h=>`<div style="padding:8px;background:#fffafc;border-radius:8px;margin-bottom:6px;font-size:13px;"><div style="color:#888;font-size:11px;">${new Date(h.date).toLocaleDateString('zh-CN')}</div><div style="margin-top:2px;">${h.content}</div></div>`).join('');}
+
+// FOOD
+function selectMeal(m){currentMeal=m;['breakfast','lunch','dinner','other'].forEach(x=>{const el=document.getElementById('meal-'+x);if(x===m){el.style.background='linear-gradient(135deg,#ff8fab,#fb6f92)';el.style.color='#fff';el.style.borderColor='transparent';}else{el.style.background='#fff';el.style.color='#fb6f92';el.style.borderColor='#fb6f92';}});}
+function addFood(){const i=document.getElementById('foodItem').value.trim();if(!i)return;data.food.push({id:Date.now(),item:i,meal:currentMeal,date:new Date().toISOString()});document.getElementById('foodItem').value='';saveData();}
+function addWater(a){data.water.push({id:Date.now(),amount:a,date:new Date().toISOString()});saveData();}
+function addDrink(){const i=document.getElementById('drinkItem').value.trim();if(!i)return;data.drink.push({id:Date.now(),item:i,date:new Date().toISOString()});document.getElementById('drinkItem').value='';saveData();}
+function renderFood(){const td=new Date().toISOString().split('T')[0],tf=data.food.filter(f=>f.date.startsWith(td));const l=document.getElementById('foodList'),ml={breakfast:'🌅',lunch:'☀️',dinner:'🌙',other:'🍪'};l.innerHTML=tf.slice().reverse().map(f=>`<span class="tag">${ml[f.meal]} ${f.item}</span>`).join(' ')||'<span style="color:#999;font-size:12px;">今天还没有记录哦</span>';const tw=data.water.filter(w=>w.date.startsWith(td)),wt=tw.reduce((s,w)=>s+w.amount,0);document.getElementById('waterTotal').textContent=wt;document.getElementById('waterProgress').style.width=Math.min(wt/2000*100,100)+'%';const dl=document.getElementById('drinkList'),tdr=data.drink.filter(d=>d.date.startsWith(td));dl.innerHTML=tdr.slice().reverse().map(d=>`<span class="tag tag-blue">🥤 ${d.item}</span>`).join(' ')||'<span style="color:#999;font-size:12px;">暂无饮料记录</span>';}
+
+// ASSETS
+function addAsset(){const d=document.getElementById('assetDate').value||new Date().toISOString().split('T')[0],a=document.getElementById('assetAccount').value,am=parseFloat(document.getElementById('assetAmount').value);if(!am){alert('请输入金额');return;}data.assets.push({id:Date.now(),date:d,account:a,amount:am});document.getElementById('assetAmount').value='';saveData();}
+function renderAssets(){const l=document.getElementById('assetList'),g={};data.assets.forEach(a=>g[a.account]=(g[a.account]||0)+a.amount);let t=0;l.innerHTML=Object.entries(g).map(([ac,am])=>{t+=am;return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #fff0f5;"><span class="tag">${ac}</span><span style="font-weight:700;color:#2e7d32;">¥${am.toFixed(2)}</span></div>`;}).join('')||'<div style="text-align:center;color:#999;padding:20px;">暂无资产记录</div>';document.getElementById('assetTotal').textContent='¥'+t.toFixed(2);}
+
+// NOTES
+function addNote(){const c=document.getElementById('noteContent').value.trim();if(!c)return;data.notes.push({id:Date.now(),content:c,date:new Date().toISOString()});document.getElementById('noteContent').value='';saveData();}
+function renderNotes(){const l=document.getElementById('notesList');l.innerHTML=data.notes.slice().reverse().map(n=>`<div class="note-card"><div style="font-size:12px;color:#888;margin-bottom:6px;">🕐 ${new Date(n.date).toLocaleString('zh-CN')}</div><div style="white-space:pre-wrap;line-height:1.6;font-size:14px;">${n.content}</div></div>`).join('')||'<div style="text-align:center;color:#999;padding:40px;">还没有记录，写下第一笔吧 ✨</div>';}
+
+// DASHBOARD
+function switchDash(p){dashPeriod=p;['day','week','month'].forEach(x=>{const el=document.getElementById('dash-'+x);if(x===p){el.style.background='linear-gradient(135deg,#ff8fab,#fb6f92)';el.style.color='#fff';el.style.borderColor='transparent';}else{el.style.background='#fff';el.style.color='#fb6f92';el.style.borderColor='#fb6f92';}});renderDashboard();}
+function renderDashboard(){const n=new Date();let sd,ed;if(dashPeriod==='day'){sd=new Date(n);sd.setHours(0,0,0,0);ed=new Date(n);ed.setHours(23,59,59,999);}else if(dashPeriod==='week'){sd=new Date(n);sd.setDate(n.getDate()-n.getDay());ed=new Date(sd);ed.setDate(sd.getDate()+6);}else{sd=new Date(n.getFullYear(),n.getMonth(),1);ed=new Date(n.getFullYear(),n.getMonth()+1,0);}const ir=d=>{const t=new Date(d);return t>=sd&&t<=ed;};const ex=data.accounting.filter(a=>ir(a.date)).reduce((s,a)=>s+a.amount,0),at=data.assets.reduce((s,a)=>s+a.amount,0),em=data.exercise.filter(e=>ir(e.date)).reduce((s,e)=>s+e.duration,0),wm=data.water.filter(w=>ir(w.date)).reduce((s,w)=>s+w.amount,0);document.getElementById('dashExpense').textContent='¥'+ex.toFixed(0);document.getElementById('dashAsset').textContent='¥'+at.toFixed(0);document.getElementById('dashExercise').textContent=em+'min';document.getElementById('dashWater').textContent=wm+'ml';const dy=dashPeriod==='day'?1:(dashPeriod==='week'?7:30),cd=[];for(let i=0;i<dy;i++){const d=new Date(sd);d.setDate(d.getDate()+i);const ds=d.toISOString().split('T')[0];cd.push(data.accounting.filter(a=>a.date.startsWith(ds)).reduce((s,a)=>s+a.amount,0));}const mx=Math.max(...cd,1);document.getElementById('expenseChart').innerHTML=cd.map((v,i)=>{const h=(v/mx*100)||2,lb=dashPeriod==='month'?(i+1)+'日':(i+1);return `<div style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:0;"><div class="chart-bar" style="width:16px;height:${h}px;"></div><div style="font-size:10px;color:#888;margin-top:4px;">${lb}</div></div>`;}).join('');const rt=data.todo.filter(t=>ir(t.created)),dc=rt.filter(t=>t.done).length,pc=rt.filter(t=>!t.done).length,ra=rt.length>0?Math.round(dc/rt.length*100):0;document.getElementById('todoCircle').style.setProperty('--progress',ra+'%');document.getElementById('todoRate').textContent=ra+'%';document.getElementById('todoDone').textContent=dc;document.getElementById('todoPending').textContent=pc;document.getElementById('dashWorkTodo').textContent=data.todo.filter(t=>t.category==='work'&&!t.done).length;document.getElementById('dashLifeTodo').textContent=data.todo.filter(t=>t.category==='life'&&!t.done).length;}
+
+// EXPORT
+function exportData(f){let c='',n=new Date().toLocaleString('zh-CN');if(f==='excel'){c='类型,内容,金额/数值,时间\n';data.accounting.forEach(a=>c+=`记账,${a.item},${a.amount},${a.date}\n`);data.assets.forEach(a=>c+=`资产,${a.account},${a.amount},${a.date}\n`);data.exercise.forEach(e=>c+=`运动,${e.type},${e.duration}分钟,${e.date}\n`);data.water.forEach(w=>c+=`喝水,,${w.amount}ml,${w.date}\n`);}else{c=`🌸 手账工作台 - 数据导出\n导出时间: ${n}\n\n【记账】\n`;data.accounting.forEach(a=>c+=`${a.date.split('T')[0]} ${a.platform} ${a.item} ¥${a.amount}\n`);c+=`\n【待办】\n`;data.todo.forEach(t=>c+=`${t.done?'✅':'⭕'} [${t.category==='work'?'工作':'生活'}] ${t.content} ${t.date||''} ${t.time||''}\n`);c+=`\n【运动】\n`;data.exercise.forEach(e=>c+=`${e.date.split('T')[0]} ${e.type} ${e.duration}分钟\n`);c+=`\n【资产】\n`;data.assets.forEach(a=>c+=`${a.date} ${a.account} ¥${a.amount}\n`);c+=`\n【记录】\n`;data.notes.forEach(n=>c+=`${n.date.split('T')[0]} ${n.content}\n`);}const b=new Blob([c],{type:f==='excel'?'text/csv;charset=utf-8;':'text/plain;charset=utf-8;'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=`手账工作台_${new Date().toISOString().split('T')[0]}.${f==='excel'?'csv':'txt'}`;a.click();URL.revokeObjectURL(u);alert('导出成功！'+(f==='pdf'||f==='word'?'（实际PDF/Word导出需后端支持，已导出文本格式）':''));}
+
+// INIT
+refreshAll();
+</script>
+</body>
+</html>
